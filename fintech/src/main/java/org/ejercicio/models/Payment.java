@@ -3,10 +3,11 @@ package org.ejercicio.models;
 import jakarta.persistence.*;
 
 import java.math.BigDecimal;
+import java.time.LocalDate;
 import java.util.Date;
 
 @Entity
-@Table(name = "credit")
+@Table(name = "payment")
 public class Payment {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -15,10 +16,10 @@ public class Payment {
 
     @ManyToOne
     @JoinColumn(name = "credit_id")
-    private long Credit_id;
+    private Credit Credit;
 
-    @Column(name = "pay_day")
-    private Date Pay_day;
+    @Column(name = "pay_date")
+    private LocalDate Pay_date;
 
     @Column(name = "amount", precision = 12, scale = 2)
     private BigDecimal Amount;
@@ -31,20 +32,20 @@ public class Payment {
         Payment_id = payment_id;
     }
 
-    public long getCredit_id() {
-        return Credit_id;
+    public Credit getCredit_id() {
+        return Credit;
     }
 
-    public void setCredit_id(long credit_id) {
-        Credit_id = credit_id;
+    public void setCredit_id(Credit credit_id) {
+        Credit = credit_id;
     }
 
-    public Date getPay_day() {
-        return Pay_day;
+    public LocalDate getPay_date() {
+        return Pay_date;
     }
 
-    public void setPay_day(Date pay_day) {
-        Pay_day = pay_day;
+    public void setPay_date(LocalDate pay_date) {
+        Pay_date = pay_date;
     }
 
     public BigDecimal getAmount() {

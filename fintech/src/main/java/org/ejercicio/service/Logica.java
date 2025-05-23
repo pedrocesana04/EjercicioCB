@@ -2,18 +2,18 @@ package org.ejercicio.service;
 import jakarta.persistence.criteria.CriteriaQuery;
 import jakarta.persistence.criteria.Root;
 import jakarta.persistence.criteria.CriteriaBuilder;
-import jakarta.persistence.criteria.Predicate;
-import jakarta.persistence.criteria.Join;
+import org.ejercicio.dto.IdAmountDTO;
+import org.ejercicio.models.Enums.Status;
 import org.hibernate.*;
 import org.ejercicio.utils.HibernateUtil;
-import javax.net.ssl.HandshakeCompletedEvent;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Date;
-import java.math.BigDecimal;
-import java.util.stream.Collectors;
 import org.ejercicio.models.Credit;
 import org.ejercicio.models.Payment;
+
+import java.math.BigDecimal;
+import java.time.LocalDate;
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.List;
 
 public class Logica {
     private static Logica instance;
@@ -28,17 +28,60 @@ public class Logica {
         return instance;
     }
 
-    public boolean GenerarPago ( long credit_id, BigDecimal amount){
-        try(Session session = HibernateUtil.getSession()) {
+    public boolean generarPago (IdAmountDTO idAmountDTO) {
+        Credit creditResult = new Credit();
+        try (Session session = HibernateUtil.getSession()) {
             CriteriaBuilder cb = session.getCriteriaBuilder();
             CriteriaQuery<Credit> query = cb.createQuery(Credit.class);
             Root<Credit> credit = query.from(Credit.class);
-            query.select(credit).where(cb.equal(credit.get("credit_id"), credit_id));
-            Credit creditResult = session.createQuery(query).uniqueResult();
+
+            query.where(cb.equal(credit.get("credit").get("credit_id"), idAmountDTO.getCredit_id()));
+            creditResult = session.createQuery(query).uniqueResult();
             if (creditResult == null) {
                 return false;
             }
-            Payment nuevoPago = new Payment();
         }
+        try (Session session = HibernateUtil.getSession()) {
+            session.beginTransaction();
+            Payment payment = new Payment();
+            payment.setCredit_id(creditResult);
+            payment.setAmount(idAmountDTO.getAmount());
+            payment.setPay_date(LocalDate.now());
+            session.save(payment);
+            session.getTransaction().commit();
+        }
+        List<Payment> paymentResult = new ArrayList<>();
+        try (Session session = HibernateUtil.getSession()) {
+            CriteriaBuilder cb = session.getCriteriaBuilder();
+            CriteriaQuery<Payment> query = cb.createQuery(Payment.class);
+            Root<Payment> payment = query.from(Payment.class);
+
+            query.select(payment).
+                    where(cb.equal(payment.get("credit").get("credit_id"), idAmountDTO.getCredit_id()));
+            paymentResult = session.createQuery(query).getResultList();
+        }
+        BigDecimal totalPayments = BigDecimal.ZERO;
+        for (Payment payment : paymentResult) {
+            totalPayments = totalPayments.add(payment.getAmount());
+        }
+        if ((((creditResult.getPrincipal_amount()).add(creditResult.getInterest_rate())).compareTo(totalPayments)) >= 0) {
+            try (Session session = HibernateUtil.getSession()) {
+                session.beginTransaction();
+                creditResult.setStatus(Status.PAID);
+                session.update(creditResult);
+                session.getTransaction().commit();
+            }
+        } else {
+            try (Session session = HibernateUtil.getSession()) {
+                session.beginTransaction();
+                if (creditResult.getEnd_date().isBefore(LocalDate.now())) {
+                    creditResult.setStatus(Status.OVERDUE);
+                    creditResult.setStatus(Status.OVERDUE);
+                    session.update(creditResult);
+                    session.getTransaction().commit();
+                }
+            }
+        }
+        return true;
     }
 }

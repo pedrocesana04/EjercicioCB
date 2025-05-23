@@ -2,7 +2,8 @@ package org.ejercicio.models;
 
 import jakarta.persistence.*;
 import java.math.BigDecimal;
-import java.util.Date;
+import java.time.LocalDate;
+
 import org.ejercicio.models.Enums.Credit_Types;
 import org.ejercicio.models.Enums.Status;
 
@@ -10,13 +11,14 @@ import org.ejercicio.models.Enums.Status;
 @Table(name = "credit")
 public class Credit {
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "credit_id")
-    private long Credit_id;
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private long credit_id;
 
     @Column(name ="client_name" , length = 80)
     private String Client_name;
 
+    @Enumerated(EnumType.STRING)
     @Column(name = "credit_type")
     private Credit_Types Credit_type;
 
@@ -27,20 +29,21 @@ public class Credit {
     private BigDecimal Interest_rate;
 
     @Column(name = "start_date")
-    private Date Start_date;
+    private LocalDate Start_date;
 
     @Column(name = "end_date")
-    private Date End_date;
+    private LocalDate End_date;
 
+    @Enumerated(EnumType.STRING)
     @Column(name = "status")
     private Status Status;
 
     public long getCredit_id() {
-        return Credit_id;
+        return credit_id;
     }
 
     public void setCredit_id(long credit_id) {
-        Credit_id = credit_id;
+        this.credit_id = credit_id;
     }
 
     public String getClient_name() {
@@ -75,19 +78,19 @@ public class Credit {
         Principal_amount = principal_amount;
     }
 
-    public Date getStart_date() {
+    public LocalDate getStart_date() {
         return Start_date;
     }
 
-    public void setStart_date(Date start_date) {
+    public void setStart_date(LocalDate start_date) {
         Start_date = start_date;
     }
 
-    public Date getEnd_date() {
+    public LocalDate getEnd_date() {
         return End_date;
     }
 
-    public void setEnd_date(Date end_date) {
+    public void setEnd_date(LocalDate end_date) {
         End_date = end_date;
     }
 
